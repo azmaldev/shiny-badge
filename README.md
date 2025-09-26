@@ -3,7 +3,7 @@
 **Shiny-Badge** is a clean, responsive, and offline-first badge generator for developers.  
 It’s a single self-contained HTML file that you can open in your browser to quickly design custom badges for your projects — no servers, no dependencies, no accounts required.
 
-**Try It Now:** [Open Shiny-Badge in your browser →](https://azmaldev.github.io/shiny-badge/)
+**Try It Now:** [Open Shiny-Badge →](https://azmaldev.github.io/shiny-badge/)
 
 ---
 
