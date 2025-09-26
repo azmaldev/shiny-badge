@@ -1,0 +1,742 @@
+<!-- Project: Shiny-Badge -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shiny-Badge · Badge Generator</title>
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #151822;
+      --muted: #9aa3b2;
+      --text: #e6e8ee;
+      --text-weak: #c7ccd6;
+      --border: #222634;
+      --accent: #4f8cff;        /* calm blue accent */
+      --accent-hover: #3e78e0;
+      --focus: 0 0 0 3px rgba(79,140,255,0.35);
+      --input-bg: #0f1115;
+      --chip-bg: #1b2030;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    [data-theme="light"] {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --muted: #5e6b80;
+      --text: #111318;
+      --text-weak: #2a2f3a;
+      --border: #e6e9ef;
+      --accent: #3f75e0;
+      --accent-hover: #3668c9;
+      --focus: 0 0 0 3px rgba(63,117,224,0.25);
+      --input-bg: #f7f8fb;
+      --chip-bg: #eff2f8;
+      --shadow: 0 8px 24px rgba(16,24,40,0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Helvetica Neue", "Noto Sans", sans-serif;
+      background: linear-gradient(180deg, var(--bg) 0%, color-mix(in oklab, var(--bg) 86%, #000 14%) 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.45;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 24px;
+    }
+
+    header.app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+    .brand-logo {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: grid; place-items: center;
+      background: radial-gradient(120% 120% at 10% 0%, var(--accent) 0%, color-mix(in oklab, var(--accent), #000 30%) 55%, #0000 56%) , linear-gradient(135deg, color-mix(in oklab, var(--accent), #000 25%), color-mix(in oklab, var(--accent), #fff 30%));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), var(--shadow);
+    }
+    .brand h1 {
+      font-size: 18px;
+      letter-spacing: 0.2px;
+      margin: 0;
+    }
+    .brand small {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .toolbar {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      height: 36px; padding: 0 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform .06s ease, border-color .2s ease, background-color .2s ease, color .2s ease;
+    }
+    .icon-btn:focus-visible { outline: none; box-shadow: var(--focus); }
+    .icon-btn:hover { border-color: color-mix(in oklab, var(--border), var(--accent) 35%); }
+    .icon-btn:active { transform: translateY(1px); }
+    .icon {
+      width: 18px; height: 18px; color: currentColor;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 880px) {
+      .grid {
+        grid-template-columns: 1fr 1.2fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card .card-body { padding: 16px; }
+    @media (min-width: 640px) {
+      .card .card-body { padding: 20px; }
+    }
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .2px;
+      text-transform: uppercase;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .field.inline {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+    label {
+      font-size: 13px; color: var(--text-weak);
+    }
+    input[type="text"], input[type="search"], input[type="color"] {
+      height: 40px;
+      width: 100%;
+      padding: 0 12px;
+      color: var(--text);
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: box-shadow .15s ease, border-color .2s ease, background-color .2s ease;
+    }
+    input[type="color"] {
+      padding: 0;
+      width: 48px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    input::placeholder { color: var(--muted); opacity: .8; }
+    input:focus { outline: none; border-color: color-mix(in oklab, var(--border), var(--accent) 35%); box-shadow: var(--focus); }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 540px) {
+      .row.two { grid-template-columns: 1fr 1fr; }
+      .row.three { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--chip-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color .2s ease, border-color .2s ease, transform .06s ease;
+    }
+    .chip:hover { border-color: color-mix(in oklab, var(--border), var(--accent) 35%); }
+    .chip:active { transform: translateY(1px); }
+    .chip .dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.15);
+    }
+
+    .preview-wrap {
+      display: grid; gap: 12px;
+    }
+    .preview-area {
+      display: grid; place-items: center;
+      padding: 20px;
+      min-height: 120px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      background:
+        radial-gradient(1200px 60px at 50% -30px, color-mix(in oklab, var(--accent), #000 75%), transparent 70%),
+        linear-gradient(0deg, color-mix(in oklab, var(--panel), #000 6%), var(--panel));
+    }
+    .preview-area svg { max-width: 100%; height: auto; image-rendering: -webkit-optimize-contrast; }
+    .meta {
+      display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 12px;
+    }
+
+    .outputs {
+      display: grid; gap: 10px;
+    }
+    .output-row {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
+    }
+    .out {
+      width: 100%;
+      height: 42px;
+      padding: 8px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: var(--text);
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      white-space: nowrap; text-overflow: ellipsis;
+    }
+
+    .footer {
+      margin-top: 20px;
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    .btn {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--panel);
+      cursor: pointer;
+      transition: transform .06s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .btn.primary {
+      background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--accent), #000 10%));
+      color: white;
+      border-color: color-mix(in oklab, var(--accent), #000 20%);
+    }
+    .btn:hover { border-color: color-mix(in oklab, var(--border), var(--accent) 35%); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: none; box-shadow: var(--focus); }
+
+    .kbd {
+      display: inline-block; min-width: 1.5em; text-align: center;
+      padding: 0 6px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--muted); font-size: 11px; margin-left: 6px;
+    }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(10px);
+      background: var(--text); color: var(--bg);
+      border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow);
+      opacity: 0; pointer-events: none; transition: opacity .22s ease, transform .22s ease;
+      z-index: 40;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .sr-only {
+      position: absolute !important;
+      height: 1px; width: 1px; overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; border: 0; padding: 0; margin: -1px;
+    }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Skip to content</a>
+  <div class="app" id="app" data-theme="dark" aria-live="polite">
+    <header class="app-header">
+      <div class="brand" aria-label="Shiny-Badge">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 14.5c4-3.5 8-3.5 12 0" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 9.5c4-3.5 8-3.5 12 0" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Shiny-Badge</h1>
+          <small>Elegant README badge generator</small>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme (Alt+T)" title="Toggle theme (Alt+T)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm0 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm9-5a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm12.95 6.536a1 1 0 0 1-1.414 0l-1.415-1.414a1 1 0 1 1 1.415-1.415l1.414 1.415a1 1 0 0 1 0 1.414ZM7.88 7.879a1 1 0 0 1-1.415 0L5.05 6.464A1 1 0 1 1 6.464 5.05L7.88 6.465a1 1 0 0 1 0 1.414Zm8.657-2.829a1 1 0 0 1 1.414 0l1.414 1.414A1 1 0 0 1 18.5 7.879l-1.415-1.415a1 1 0 0 1 0-1.414ZM7.88 16.95a1 1 0 0 1 0 1.415L6.465 19.78A1 1 0 1 1 5.05 18.364l1.415-1.415a1 1 0 0 1 1.414 0Z" fill="currentColor"/>
+          </svg>
+          <span class="sr-only">Toggle theme</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="grid" tabindex="-1">
+      <!-- Left: Controls -->
+      <section class="card" aria-label="Badge inputs and options">
+        <div class="card-body">
+          <h2 class="section-title">Badge details</h2>
+          <div class="row two">
+            <div class="field">
+              <label for="labelInput">Label</label>
+              <input id="labelInput" type="text" inputmode="text" placeholder="e.g. Build" value="build" aria-describedby="labelHelp">
+              <small id="labelHelp" class="sr-only">Badge label text</small>
+            </div>
+            <div class="field">
+              <label for="valueInput">Value</label>
+              <input id="valueInput" type="text" inputmode="text" placeholder="e.g. Passing" value="passing" aria-describedby="valueHelp">
+              <small id="valueHelp" class="sr-only">Badge value text</small>
+            </div>
+          </div>
+
+          <div class="row two">
+            <div class="field inline">
+              <div>
+                <label for="colorInput">Color (hex)</label>
+                <input id="colorInput" type="text" spellcheck="false" value="#2ea44f" placeholder="#2ea44f" aria-describedby="colorHelp" />
+                <small id="colorHelp" class="sr-only">Badge color as hex code</small>
+              </div>
+              <input id="colorPicker" type="color" aria-label="Pick color" value="#2ea44f" title="Pick color">
+            </div>
+            <div class="field">
+              <label>Presets</label>
+              <div class="chips" role="group" aria-label="Color presets">
+                <button class="chip" data-color="#2ea44f" title="Green">
+                  <span class="dot" style="background:#2ea44f"></span>Green
+                </button>
+                <button class="chip" data-color="#0366d6" title="Blue">
+                  <span class="dot" style="background:#0366d6"></span>Blue
+                </button>
+                <button class="chip" data-color="#d73a49" title="Red">
+                  <span class="dot" style="background:#d73a49"></span>Red
+                </button>
+                <button class="chip" data-color="#d97706" title="Orange">
+                  <span class="dot" style="background:#d97706"></span>Orange
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="section-title" style="margin-top:16px;">Templates</h2>
+          <div class="chips" role="group" aria-label="Template presets">
+            <button class="chip" data-template="github" title="GitHub-style: Build Passing">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;">
+                <path d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.9 9.6.5.1.7-.2.7-.5v-2c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.6 1.2 1.6 1.2 1 .1.8 2.2 3.3 1.6.1-.8.4-1.3.8-1.6-2.3-.3-4.7-1.2-4.7-5.3 0-1.2.4-2.2 1.1-3-.1-.3-.5-1.5.1-3 0 0 .9-.3 3 .1a10.5 10.5 0 0 1 5.4 0c2.1-.4 3-.1 3-.1.6 1.5.2 2.7.1 3 .7.8 1.1 1.8 1.1 3 0 4.1-2.4 5-4.8 5.3.4.3.8 1 .8 2.1v3.1c0 .3.2.6.7.5 4-1.3 6.9-5.1 6.9-9.6C22 6.6 17.5 2 12 2Z" fill="currentColor"/>
+              </svg>
+              GitHub: Build Passing
+            </button>
+            <button class="chip" data-template="npm" title="npm-style: v1.0.0">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;">
+                <rect x="3" y="7" width="18" height="10" rx="2" fill="currentColor"/>
+                <rect x="6" y="9" width="12" height="6" fill="var(--panel)"/>
+              </svg>
+              npm: v1.0.0
+            </button>
+            <button class="chip" data-template="docs" title="Docs-style: latest">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;">
+                <path d="M6 5h9a3 3 0 0 1 3 3v11H9a3 3 0 0 1-3-3V5Z" fill="currentColor"/>
+                <path d="M6 5a3 3 0 0 1 3-3h9v13a3 3 0 0 1-3 3H6V5Z" fill="currentColor" opacity=".4"/>
+              </svg>
+              Docs: latest
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Preview & Outputs -->
+      <section class="card" aria-label="Live preview and output">
+        <div class="card-body preview-wrap">
+          <h2 class="section-title">Preview</h2>
+          <div class="preview-area" id="previewArea" aria-live="polite" aria-label="Badge preview">
+            <!-- SVG injected here -->
+          </div>
+          <div class="meta" id="meta"></div>
+
+          <h2 class="section-title" style="margin-top:6px;">Output</h2>
+          <div class="outputs" role="group" aria-label="Output snippets">
+            <div class="output-row">
+              <input id="mdOutput" class="out" type="text" readonly aria-label="Markdown snippet">
+              <button id="copyMd" class="btn" aria-label="Copy Markdown (Alt+M)" title="Copy Markdown (Alt+M)">
+                Copy MD<span class="kbd" aria-hidden="true">Alt+M</span>
+              </button>
+              <button id="downloadBtn" class="btn primary" aria-label="Download SVG (Alt+S)" title="Download SVG (Alt+S)">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px;">
+                  <path d="M12 3a1 1 0 0 1 1 1v8.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4.007 4.007a1.2 1.2 0 0 1-1.4 0L7.293 11.707a1 1 0 1 1 1.414-1.414L11 12.586V4a1 1 0 0 1 1-1Z" fill="currentColor"/>
+                  <path d="M5 19a2 2 0 0 1 2-2h10a2 2 0 1 1 0 4H7a2 2 0 0 1-2-2Z" fill="currentColor"/>
+                </svg>
+                Download
+              </button>
+            </div>
+
+            <div class="output-row">
+              <input id="htmlOutput" class="out" type="text" readonly aria-label="HTML snippet">
+              <button id="copyHtml" class="btn" aria-label="Copy HTML (Alt+H)" title="Copy HTML (Alt+H)">
+                Copy HTML<span class="kbd" aria-hidden="true">Alt+H</span>
+              </button>
+              <button id="copySvg" class="btn" aria-label="Copy raw SVG" title="Copy raw SVG">
+                Copy SVG
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> Shiny-Badge</div>
+      <a href="#" rel="noopener">GitHub</a>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Elements
+      const el = (id) => document.getElementById(id);
+      const labelInput = el('labelInput');
+      const valueInput = el('valueInput');
+      const colorInput = el('colorInput');
+      const colorPicker = el('colorPicker');
+      const previewArea = el('previewArea');
+      const mdOutput = el('mdOutput');
+      const htmlOutput = el('htmlOutput');
+      const copyMd = el('copyMd');
+      const copyHtml = el('copyHtml');
+      const downloadBtn = el('downloadBtn');
+      const copySvgBtn = el('copySvg');
+      const themeToggle = el('themeToggle');
+      const meta = el('meta');
+      const app = document.getElementById('app');
+      const toast = el('toast');
+
+      // Footer year
+      el('year').textContent = new Date().getFullYear();
+
+      // Theme persistence
+      const THEME_KEY = 'sb-theme';
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        app.dataset.theme = savedTheme;
+      } else {
+        // Prefer system scheme
+        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        app.dataset.theme = prefersLight ? 'light' : 'dark';
+      }
+      themeToggle.addEventListener('click', () => {
+        const next = app.dataset.theme === 'light' ? 'dark' : 'light';
+        app.dataset.theme = next;
+        localStorage.setItem(THEME_KEY, next);
+        announce(`Theme: ${capitalize(next)}`);
+        update(); // ensure preview contrast remains good
+      });
+
+      // Utility functions
+      function clamp(val, min, max) { return Math.min(max, Math.max(min, val)); }
+      function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+      function normalizeHex(input) {
+        // Accept #rgb, rgb, #rrggbb, rrggbb
+        let v = (input || '').trim().toLowerCase();
+        if (!v) return null;
+        if (v[0] === '#') v = v.slice(1);
+        if (v.length === 3) {
+          v = v.split('').map(c => c + c).join('');
+        }
+        if (!/^[0-9a-f]{6}$/i.test(v)) return null;
+        return '#' + v;
+      }
+
+      function hexToRgb(hex) {
+        const v = normalizeHex(hex);
+        if (!v) return null;
+        const n = parseInt(v.slice(1), 16);
+        return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+      }
+
+      function luminance({ r, g, b }) {
+        // WCAG relative luminance
+        const srgb = [r, g, b].map(n => n / 255).map(c => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+        return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+      }
+
+      function idealTextColor(bgHex) {
+        const rgb = hexToRgb(bgHex);
+        if (!rgb) return '#ffffff';
+        const L = luminance(rgb);
+        return L > 0.48 ? '#111111' : '#ffffff';
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => toast.classList.remove('show'), 1400);
+      }
+
+      function announce(message) {
+        showToast(message);
+      }
+
+      // Offscreen SVG to measure text widths accurately
+      const measurer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      measurer.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      measurer.setAttribute('width', '0');
+      measurer.setAttribute('height', '0');
+      measurer.style.position = 'absolute';
+      measurer.style.left = '-9999px';
+      measurer.style.top = '-9999px';
+      document.body.appendChild(measurer);
+
+      function measureTextWidth(text, fontSize = 11, fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial') {
+        const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t.setAttribute('font-family', fontFamily);
+        t.setAttribute('font-size', String(fontSize));
+        t.setAttribute('font-weight', '600');
+        t.setAttribute('letter-spacing', '0.2px');
+        t.textContent = text || '';
+        measurer.appendChild(t);
+        const w = Math.ceil(t.getBBox().width);
+        measurer.removeChild(t);
+        return w;
+      }
+
+      // Generate badge SVG string
+      function generateSVG({ label, value, color }) {
+        const fontSize = 11;
+        const paddingX = 6; // per side
+        const height = 20;
+        const radius = 3;
+        const leftColor = app.dataset.theme === 'light' ? '#4b5563' : '#555';
+        const leftTextColor = '#fff';
+        const rightTextColor = idealTextColor(color);
+
+        const labelW = measureTextWidth(label, fontSize) + paddingX * 2;
+        const valueW = measureTextWidth(value, fontSize) + paddingX * 2;
+        const width = labelW + valueW;
+
+        const labelX = Math.floor(labelW / 2);
+        const valueX = labelW + Math.floor(valueW / 2);
+
+        // For screen readers
+        const ariaLabel = `${label}: ${value}`;
+
+        // Build SVG
+        const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(ariaLabel)}" width="${width}" height="${height}">
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#fff" stop-opacity=".05"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <mask id="round">
+    <rect width="${width}" height="${height}" rx="${radius}" fill="#fff"/>
+  </mask>
+  <g mask="url(#round)">
+    <rect width="${labelW}" height="${height}" fill="${leftColor}"/>
+    <rect x="${labelW}" width="${valueW}" height="${height}" fill="${color}"/>
+    <rect width="${width}" height="${height}" fill="url(#s)"/>
+  </g>
+  <g aria-hidden="true" fill="#fff" text-anchor="middle"
+     font-family='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Helvetica Neue", "Noto Sans",sans-serif'
+     font-size="${fontSize}" font-weight="600">
+    <text x="${labelX}" y="14" fill="${leftTextColor}">${escapeXml(label)}</text>
+    <text x="${valueX}" y="14" fill="${rightTextColor}">${escapeXml(value)}</text>
+  </g>
+</svg>`;
+        return { svg, width, height, labelW, valueW };
+      }
+
+      // Escape helpers
+      function escapeHtml(s) {
+        return (s + '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      function escapeXml(s) {
+        return escapeHtml(s).replace(/'/g, '&apos;');
+      }
+
+      // Sync outputs
+      function update() {
+        const label = (labelInput.value || '').trim() || 'badge';
+        const value = (valueInput.value || '').trim() || 'value';
+        const hex = normalizeHex(colorInput.value) || '#2ea44f';
+        colorInput.value = hex;
+        colorPicker.value = hex;
+
+        const { svg, width, height, labelW, valueW } = generateSVG({ label, value, color: hex });
+        previewArea.innerHTML = svg;
+
+        meta.innerHTML = `
+          <span>Size: ${width}×${height}</span>
+          <span>Label: ${labelW}px</span>
+          <span>Value: ${valueW}px</span>
+        `;
+
+        // Output snippets (reference name 'badge.svg' as conventional)
+        mdOutput.value = `![${label}]` + `(badge.svg)`;
+        htmlOutput.value = `<img src="badge.svg" alt="${label}">`;
+
+        updateDownloadBlob(svg);
+        updateCopySources(svg);
+      }
+
+      // Prepare Blob/data for download and copy
+      let currentSvg = '';
+      function updateDownloadBlob(svg) {
+        currentSvg = svg;
+      }
+
+      function updateCopySources(svg) {
+        updateCopySources.svg = svg;
+      }
+
+      // Actions
+      async function copy(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Copied to clipboard');
+        } catch (e) {
+          // Fallback: select and prompt
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select(); ta.setSelectionRange(0, 99999);
+          try { document.execCommand('copy'); showToast('Copied to clipboard'); }
+          catch { showToast('Copy failed'); }
+          document.body.removeChild(ta);
+        }
+      }
+
+      function downloadSVGFile(filename = 'badge.svg') {
+        const blob = new Blob([currentSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+        announce('SVG download started');
+      }
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        const alt = e.altKey || (e.metaKey && !e.ctrlKey); // allow Option on mac
+        if (!alt) return;
+        const k = e.key.toLowerCase();
+        if (k === 'm') { e.preventDefault(); copy(mdOutput.value); }
+        else if (k === 'h') { e.preventDefault(); copy(htmlOutput.value); }
+        else if (k === 's') { e.preventDefault(); downloadSVGFile(); }
+        else if (k === 't') { e.preventDefault(); themeToggle.click(); }
+      });
+
+      // Event bindings
+      [labelInput, valueInput, colorInput].forEach(inp => {
+        inp.addEventListener('input', update);
+        inp.addEventListener('change', update);
+      });
+      colorPicker.addEventListener('input', (e) => { colorInput.value = e.target.value; update(); });
+
+      // Color preset chips
+      document.querySelectorAll('.chip[data-color]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const color = btn.getAttribute('data-color');
+          colorInput.value = color;
+          colorPicker.value = color;
+          update();
+        });
+      });
+
+      // Template chips
+      document.querySelectorAll('.chip[data-template]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const t = btn.getAttribute('data-template');
+          if (t === 'github') {
+            labelInput.value = 'build';
+            valueInput.value = 'passing';
+            colorInput.value = '#2ea44f';
+            colorPicker.value = '#2ea44f';
+          } else if (t === 'npm') {
+            labelInput.value = 'npm';
+            valueInput.value = 'v1.0.0';
+            colorInput.value = '#cb3837';
+            colorPicker.value = '#cb3837';
+          } else if (t === 'docs') {
+            labelInput.value = 'docs';
+            valueInput.value = 'latest';
+            colorInput.value = '#0ea5e9';
+            colorPicker.value = '#0ea5e9';
+          }
+          update();
+          announce('Template applied');
+        });
+      });
+
+      // Copy buttons
+      copyMd.addEventListener('click', () => copy(mdOutput.value));
+      copyHtml.addEventListener('click', () => copy(htmlOutput.value));
+      copySvgBtn.addEventListener('click', () => copy(updateCopySources.svg || currentSvg));
+
+      // Download
+      downloadBtn.addEventListener('click', () => {
+        const base = `${(labelInput.value || 'badge').trim()}-${(valueInput.value || 'value').trim()}`.replace(/\s+/g, '-').toLowerCase();
+        downloadSVGFile(`${base || 'badge'}.svg`);
+      });
+
+      // Initialize
+      update();
+    })();
+  </script>
+</body>
+</html>
